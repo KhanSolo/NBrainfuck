@@ -1,16 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using BrainfuckInterpreter;
 using NUnit.Framework;
 
 namespace InterpreterTests
 {
 	[TestFixture]
-	public class Tests
+	public abstract class TestsBase
+	{
+		protected static Writer Run(string code)
+		{
+			var writer = new Writer();
+			var reader = new Reader();
+			var interpreter = new Interpreter(writer, reader);
+			interpreter.Run(code);
+			return writer;
+		}
+	}
+
+	
+	public class Tests : TestsBase
 	{
 		[Test]
 		public void TestUnoptimizedHelloWorld()
@@ -59,14 +70,7 @@ namespace InterpreterTests
 				.After(5000, 50), $"'{writer.Out}'");
 		}
 
-		private static Writer Run(string code)
-		{
-			var writer = new Writer();
-			var reader = new Reader();
-			var interpreter = new Interpreter(writer, reader);
-			interpreter.Run(code);
-			return writer;
-		}
+
 
 		[Test]
 		public void TestSelectionSorting()
@@ -94,7 +98,7 @@ namespace InterpreterTests
 		}
 	}
 
-	internal class Writer : TextWriter
+	public class Writer : TextWriter
 	{
 		private readonly StringBuilder sb = new StringBuilder();
 		public string Out => sb.ToString();
@@ -105,7 +109,7 @@ namespace InterpreterTests
 		}
 	}
 
-	internal class Reader : TextReader
+	public class Reader : TextReader
 	{
 		public Reader() : this(string.Empty) { }
 		private readonly string input;
@@ -119,28 +123,6 @@ namespace InterpreterTests
 		public override int Read()
 		{
 			return In;
-		}
-	}
-
-	[TestFixture]
-	public class InternalTests
-	{
-		[Test]
-		public void TestInput()
-		{
-			var expect = new []
-			{
-				'a', 'b', 'c', default(char)
-				, default(char)
-				, default(char)
-				, default(char)
-			};
-			var input = new Reader("abc");
-			foreach (var ch in expect)
-			{
-				var inp = input.In;
-				Assert.True(inp == ch, $"'{inp}' '{ch}'");
-			}
 		}
 	}
 }
