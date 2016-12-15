@@ -1,27 +1,11 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using System.Text;
 using BrainfuckInterpreter;
 using NUnit.Framework;
 
 namespace InterpreterTests
 {
-	[TestFixture]
-	public abstract class TestsBase
-	{
-		protected static Writer Run(string code)
-		{
-			var writer = new Writer();
-			var reader = new Reader();
-			var interpreter = new Interpreter(writer, reader);
-			interpreter.Run(code);
-			return writer;
-		}
-	}
-
-	
-	public class Tests : TestsBase
+	public class Tests : TestsInterpreterBase
 	{
 		[Test]
 		public void TestUnoptimizedHelloWorld()
@@ -95,34 +79,6 @@ namespace InterpreterTests
 			{
 				Assert.True(tuple.Item1 == tuple.Item2);
 			}
-		}
-	}
-
-	public class Writer : TextWriter
-	{
-		private readonly StringBuilder sb = new StringBuilder();
-		public string Out => sb.ToString();
-		public override Encoding Encoding { get; }
-		public override void Write(char value)
-		{
-			sb.Append(value);
-		}
-	}
-
-	public class Reader : TextReader
-	{
-		public Reader() : this(string.Empty) { }
-		private readonly string input;
-		private int i;
-		public Reader(string input)
-		{
-			this.input = input;
-			i = 0;
-		}
-		public char In => i == input.Length ? default(char) : input[i++];
-		public override int Read()
-		{
-			return In;
 		}
 	}
 }

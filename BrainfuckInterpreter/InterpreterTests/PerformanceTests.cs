@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace InterpreterTests
 {
-	public class PerformanceTests : TestsBase
+	public class PerformanceTests : TestsInterpreterBase
 	{
 		[Test]
 		public void TestLongCycles()

@@ -2,7 +2,7 @@
 
 namespace InterpreterTests
 {
-	public class InternalTests : TestsBase
+	public class InternalTests : TestsInterpreterBase
 	{
 		[Test]
 		public void TestInput()

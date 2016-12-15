@@ -9,8 +9,6 @@ namespace BrainfuckInterpreter
 {
 	class Program
 	{
-
-
 		static void Main(string[] args)
 		{
 			var code = File.ReadAllText("collatz.txt");
