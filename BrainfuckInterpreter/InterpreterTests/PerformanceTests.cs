@@ -33,6 +33,7 @@ namespace InterpreterTests
 			var writer = Run(code);
 			sw.Stop();
 			Console.WriteLine("Elapsed: " + sw.ElapsedMilliseconds + " ms");
+			//Elapsed: 204097 ms
 		}
 	}
 }
