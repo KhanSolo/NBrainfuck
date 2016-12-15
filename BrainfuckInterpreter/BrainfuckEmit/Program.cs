@@ -28,6 +28,11 @@ namespace BrainfuckEmit
 			
 		}
 
+		private void Validate(string code)
+		{
+			
+		}
+
 		private string Optimize(string code)
 		{
 			// todo optimizer
@@ -43,13 +48,14 @@ namespace BrainfuckEmit
 					 new Type[] { typeof(char) }); // вывод символа
 
 
+
 			Type pointType;
 
 			AppDomain currentDom = Thread.GetDomain();
 
 			//Console.Write("Please enter a name for your new assembly: ");
 			StringBuilder asmFileNameBldr = new StringBuilder();
-			asmFileNameBldr.Append(/*Console.ReadLine()*/"bf_executable");
+			asmFileNameBldr.Append("bf_executable");
 			asmFileNameBldr.Append(".exe");
 			string asmFileName = asmFileNameBldr.ToString();
 
@@ -71,6 +77,7 @@ namespace BrainfuckEmit
 			ConstructorBuilder pointCtor = myTypeBldr.DefineConstructor(
 									   MethodAttributes.Public,
 									  CallingConventions.Standard, ctorParams);
+
 			ILGenerator ctorIL = pointCtor.GetILGenerator();
 			ctorIL.Emit(OpCodes.Ret);
 
@@ -96,6 +103,11 @@ namespace BrainfuckEmit
 			pmIL.Emit(OpCodes.Stloc, dataPointer);
 
 			#region generate body
+
+			// int - codePointer of closing bracket
+			// Tuple Item1 - label after opening bracket
+			// Tuple Item2 - label after closing bracket
+			Dictionary<int, Tuple<Label, Label>> labels = new Dictionary<int, Tuple<Label, Label>>();
 
 			for (var codePointer = 0;
 					codePointer < code.Length;
@@ -198,26 +210,57 @@ namespace BrainfuckEmit
 
 					case '[':
 					{
-						/*
-						 if the byte at the data pointer is zero, 
-						 then instead of moving the instruction pointer 
-						 forward to the next command, 
-						 jump it forward to the command after the matching ] command.							 
-						 */
-						 
-						break;
+							/*
+							 if the byte at the data pointer is zero, 
+							 then instead of moving the instruction pointer 
+							 forward to the next command, 
+							 jump it forward to the command after the matching ] command.							 
+							 */
+
+							// determine codePointer of corr closing bracket
+						var cp = codePointer;
+						while (code[cp] != ']') cp++;
+
+						var label_after_closing_bracket = new Label();
+						var label_after_opening_bracket = new Label();
+
+						var tuple = new Tuple<Label, Label>(
+							label_after_opening_bracket, 
+							label_after_closing_bracket);
+							// 
+
+							/*
+							if (data[dataPointer] == 0){
+								goto label_after_closing_bracket
+							}
+								*/						
+							pmIL.MarkLabel(label_after_opening_bracket);
+							
+							break;
 					}
 
 					case ']':
 					{
-						/*
-						 if the byte at the data pointer is nonzero, 
-						 then instead of moving the instruction pointer 
-						 forward to the next command, jump it back to the 
-						 command after the matching [ command.
-						 */
-						 
-						break;
+							/*
+							 if the byte at the data pointer is nonzero, 
+							 then instead of moving the instruction pointer 
+							 forward to the next command, jump it back to the 
+							 command after the matching [ command.
+							 */
+
+							 var tuple = labels[codePointer];
+							 var label_after_opening_bracket = tuple.Item1;
+							 var label_after_closing_bracket = tuple.Item2;
+
+							/*
+							if (data[dataPointer] != 0){
+								goto label_after_opening_bracket
+							}
+
+							*/
+							pmIL.MarkLabel(label_after_closing_bracket);
+							
+							break;
 					}
 				}
 			}
@@ -228,7 +271,6 @@ namespace BrainfuckEmit
 			//
 
 			pointType = myTypeBldr.CreateType();
-
 			Console.WriteLine("Type completed.");
 
 			myAsmBldr.SetEntryPoint(pointMainBldr);
@@ -237,7 +279,7 @@ namespace BrainfuckEmit
 
 
 			// todo transfer control to generated asm
-			pointType.InvokeMember()
+			//pointType.InvokeMember()
 		}
 	}
 }
