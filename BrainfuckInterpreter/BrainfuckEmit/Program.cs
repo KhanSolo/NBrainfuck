@@ -28,15 +28,22 @@ namespace BrainfuckEmit
 			
 		}
 
+		private string Optimize(string code)
+		{
+			// todo optimizer
+			return code;
+		}
+
 		public void Run(string code)
 		{
+			code = Optimize(code);
+
 			MethodInfo writeMI = typeof(Console).GetMethod(
 					 "Write",
 					 new Type[] { typeof(char) }); // вывод символа
 
 
-			// todo create beginning
-			Type pointType = null;
+			Type pointType;
 
 			AppDomain currentDom = Thread.GetDomain();
 
@@ -102,7 +109,6 @@ namespace BrainfuckEmit
 					case '>':
 						{
 							//dataPointer++;
-
 							pmIL.Emit(OpCodes.Ldloc, dataPointer);
 							pmIL.Emit(OpCodes.Ldc_I4, 1); //
 							pmIL.Emit(OpCodes.Add);
@@ -113,7 +119,6 @@ namespace BrainfuckEmit
 					case '<':
 						{
 							//dataPointer--;
-
 							pmIL.Emit(OpCodes.Ldloc, dataPointer);
 							pmIL.Emit(OpCodes.Ldc_I4, 1);
 							pmIL.Emit(OpCodes.Sub);
@@ -124,7 +129,6 @@ namespace BrainfuckEmit
 					case '+':
 						{
 							//data[dataPointer]++;
-
 							pmIL.Emit(OpCodes.Ldloc, memory);
 							pmIL.Emit(OpCodes.Ldloc, dataPointer);
 							pmIL.Emit(OpCodes.Ldelema, typeof(byte));
@@ -174,20 +178,12 @@ namespace BrainfuckEmit
 						}
 					case '.':
 						{
-							//var printed = (char) data[dataPointer];
-							//writer.Write(printed);
+							//writer.Write((char) data[dataPointer]);
 
 							pmIL.Emit(OpCodes.Ldloc, memory);
 							pmIL.Emit(OpCodes.Ldloc, dataPointer);
 							pmIL.Emit(OpCodes.Ldelem_U1);
 							pmIL.EmitCall(OpCodes.Call, writeMI, null);
-							/*
-							 //000028: 			Console.Write((char)memory[dataPointer]);
-							  IL_004a:  ldloc.0
-							  IL_004b:  ldloc.1
-							  IL_004c:  ldelem.u1
-							  IL_004d:  call       void [mscorlib]System.Console::Write(char)
-							 */
 
 							break;
 						}
@@ -198,9 +194,31 @@ namespace BrainfuckEmit
 							break;
 						}
 
-						#endregion
+					#endregion
 
-					// todo [ & ]
+					case '[':
+					{
+						/*
+						 if the byte at the data pointer is zero, 
+						 then instead of moving the instruction pointer 
+						 forward to the next command, 
+						 jump it forward to the command after the matching ] command.							 
+						 */
+						 
+						break;
+					}
+
+					case ']':
+					{
+						/*
+						 if the byte at the data pointer is nonzero, 
+						 then instead of moving the instruction pointer 
+						 forward to the next command, jump it back to the 
+						 command after the matching [ command.
+						 */
+						 
+						break;
+					}
 				}
 			}
 
@@ -219,7 +237,7 @@ namespace BrainfuckEmit
 
 
 			// todo transfer control to generated asm
-
+			pointType.InvokeMember()
 		}
 	}
 }
