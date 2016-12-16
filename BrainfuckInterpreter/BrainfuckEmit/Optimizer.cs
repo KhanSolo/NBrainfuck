@@ -6,18 +6,16 @@ namespace BrainfuckEmit
 	{
 		public string Optimize(string code)
 		{
-			// todo optimizer
-
 			var sb = new StringBuilder(code);
 
 			sb = RemoveSpaces(sb);
 
 			for (var i = 0; i < sb.Length; ++i)
-				// +++++       --> i5 (increment by 5)   DONE
-				// -------     --> d7 (decrement by 7)
-				// >>>		   --> r3 (right shift by 3)
-				// <<<<<<	   --> l6 (left shift by 6)
-				// [+] или [-] --> s0 (set to 0)         DONE
+			// +++++       --> i5 (increment by 5)   DONE
+			// -------     --> d7 (decrement by 7)   DONE
+			// >>>		   --> r3 (right shift by 3) DONE
+			// <<<<<<	   --> l6 (left shift by 6)  DONE
+			// [+] или [-] --> s0 (set to 0)         DONE
 			{
 				bool noOp = true;
 
@@ -34,12 +32,12 @@ namespace BrainfuckEmit
 				if (sb[i] == '>')
 				{
 					noOp = false;
-					//i = compress(i, sb, 'd', '-');
+					i = Compress(i, sb, 'r', '>');
 				}
 				if (sb[i] == '<')
 				{
 					noOp = false;
-					//i = compress(i, sb, 'd', '-');
+					i = Compress(i, sb, 'l', '<');
 				}
 				if (sb[i] == '.') noOp = false;
 				if (sb[i] == ',') noOp = false;

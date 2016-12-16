@@ -24,7 +24,7 @@ namespace InterpreterTests
 						+ " ------.--------.>+.>.";
 			var emit = new Optimizer();
 			var optimized = emit.Optimize(code);
-			Assert.True("i3s0i10[>i7>i10>i3>+<<<<-]>i2.>+.i7..i3.>i2.<<i15.>.i3.d6.d8.>+.>." == optimized, $"{optimized}");
+			Assert.True("i3s0i10[>i7>i10>i3>+l4-]>i2.>+.i7..i3.>i2.l2i15.>.i3.d6.d8.>+.>." == optimized, $"{optimized}");
 		}
 
 		[Test]
@@ -66,7 +66,7 @@ namespace InterpreterTests
 		[Test]
 		public void OptimizeLeft()
 		{
-			var code = "lllll lllll lllll.";
+			var code = "<<<<< <<<<< <<<<<.";
 			var emit = new Optimizer();
 			var optimized = emit.Optimize(code);
 			Assert.True("l15." == optimized, $"{optimized}");
@@ -75,7 +75,7 @@ namespace InterpreterTests
 		[Test]
 		public void OptimizeRight()
 		{
-			var code = "rrrrr rrrrr rrrrr.";
+			var code = ">>>>> >>>>> >>>>>.";
 			var emit = new Optimizer();
 			var optimized = emit.Optimize(code);
 			Assert.True("r15." == optimized, $"{optimized}");

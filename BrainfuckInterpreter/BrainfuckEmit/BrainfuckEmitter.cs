@@ -31,18 +31,19 @@ namespace BrainfuckEmit
 				new Type[] { typeof(char) }); // вывод символа
 
 			// todo Read
-
+			//char kc = Console.ReadKey(true).KeyChar;
+			
 			Type pointType;
 
 			AppDomain currentDom = Thread.GetDomain();
 
 			//Console.Write("Please enter a name for your new assembly: ");
-			StringBuilder asmFileNameBldr = new StringBuilder();
+			var asmFileNameBldr = new StringBuilder();
 			asmFileNameBldr.Append("bf_executable");
 			asmFileNameBldr.Append(".exe");
 			var asmFileName = asmFileNameBldr.ToString();
 
-			AssemblyName myAsmName = new AssemblyName();
+			var myAsmName = new AssemblyName();
 			myAsmName.Name = "MyDynamicAssembly";
 
 			AssemblyBuilder myAsmBldr = currentDom.DefineDynamicAssembly(
@@ -50,11 +51,11 @@ namespace BrainfuckEmit
 				AssemblyBuilderAccess.RunAndSave);
 
 			// We've created a dynamic assembly space - now, we need to create a module
-			ModuleBuilder myModuleBldr = myAsmBldr.DefineDynamicModule(asmFileName, asmFileName);
-			TypeBuilder myTypeBldr = myModuleBldr.DefineType("BfProgram");
+			var myModuleBldr = myAsmBldr.DefineDynamicModule(asmFileName, asmFileName);
+			var myTypeBldr = myModuleBldr.DefineType("BfProgram");
 
-			Type objType = Type.GetType("System.Object");
-			ConstructorInfo objCtor = objType.GetConstructor(new Type[0]);
+			//Type objType = Type.GetType("System.Object");
+			//ConstructorInfo objCtor = objType.GetConstructor(new Type[0]);
 
 			Type[] ctorParams = new Type[] { /*typeof(int), typeof(int)*/ };
 			ConstructorBuilder pointCtor = myTypeBldr.DefineConstructor(
@@ -272,21 +273,21 @@ namespace BrainfuckEmit
 					
 					case 'i': //increment
 					{
-						// get operand
-						int operand;
-						if(codePointer+1 >= code.Length ) throw new InvalidOperationException("i");
-						var ccod = code[codePointer + 1];
-						if (!IsDigit(ccod))throw new InvalidOperationException("i : operand");
-						var sb = new StringBuilder();
-						while((codePointer + 1 < code.Length)&&
-						      IsDigit(code[codePointer+1])) {
-							sb.Append(code[codePointer+1]);
-							codePointer++;
-						}
-						operand = int.Parse(sb.ToString());
+							// get operand
+							//if(codePointer+1 >= code.Length ) throw new InvalidOperationException("i");
+							//var ccod = code[codePointer + 1];
+							//if (!IsDigit(ccod))throw new InvalidOperationException("i : operand");
+							//var sb = new StringBuilder();
+							//while((codePointer + 1 < code.Length)&&
+							//      IsDigit(code[codePointer+1])) {
+							//	sb.Append(code[codePointer+1]);
+							//	codePointer++;
+							//}
+							//var operand = int.Parse(sb.ToString());
+							var operand = GetOperand(code, ref codePointer, 'i');
 
-						//data[dataPointer]+=operand;
-						pmIL.Emit(OpCodes.Ldloc, memory);
+							//data[dataPointer]+=operand;
+							pmIL.Emit(OpCodes.Ldloc, memory);
 						pmIL.Emit(OpCodes.Ldloc, dataPointer);
 						pmIL.Emit(OpCodes.Ldelema, typeof(byte));
 						pmIL.Emit(OpCodes.Dup);
@@ -301,17 +302,7 @@ namespace BrainfuckEmit
 
 					case 'd':
 					{
-						if (codePointer + 1 >= code.Length) throw new InvalidOperationException("d");
-						var ccod = code[codePointer + 1];
-						if (!IsDigit(ccod)) throw new InvalidOperationException("d : operand");
-						var sb = new StringBuilder();
-						while ((codePointer + 1 < code.Length) &&
-						       IsDigit(code[codePointer + 1]))
-						{
-							sb.Append(code[codePointer + 1]);
-							codePointer++;
-						}
-						var operand = int.Parse(sb.ToString());
+						var operand = GetOperand(code, ref codePointer, 'd');
 
 						//data[dataPointer]+=operand;
 						pmIL.Emit(OpCodes.Ldloc, memory);
@@ -325,6 +316,28 @@ namespace BrainfuckEmit
 						pmIL.Emit(OpCodes.Stind_I1);
 						break;
 					}
+
+					case 'l':
+					{
+						var operand = GetOperand(code, ref codePointer, 'l');
+
+							pmIL.Emit(OpCodes.Ldloc, dataPointer);
+							pmIL.Emit(OpCodes.Ldc_I4, operand);
+							pmIL.Emit(OpCodes.Sub);
+							pmIL.Emit(OpCodes.Stloc, dataPointer);
+							break;
+					}
+
+					case 'r':
+						{
+							var operand = GetOperand(code, ref codePointer, 'r');
+
+							pmIL.Emit(OpCodes.Ldloc, dataPointer);
+							pmIL.Emit(OpCodes.Ldc_I4, operand);
+							pmIL.Emit(OpCodes.Add);
+							pmIL.Emit(OpCodes.Stloc, dataPointer);
+							break;
+						}
 				}
 			}
 
@@ -362,6 +375,24 @@ namespace BrainfuckEmit
 			//p.WaitForExit();
 			sw.Stop();
 			Console.WriteLine("Elapsed : " + sw.ElapsedMilliseconds.ToString() + " ms");
+		}
+
+		private int GetOperand(string code, ref int codePointer, char opcode)
+		{
+			if (codePointer + 1 >= code.Length)
+				throw new InvalidOperationException($"{opcode}");
+			var ccod = code[codePointer + 1];
+			if (!IsDigit(ccod))
+				throw new InvalidOperationException($"{opcode} : operand");
+			var sb = new StringBuilder();
+			while ((codePointer + 1 < code.Length) &&
+			       IsDigit(code[codePointer + 1]))
+			{
+				sb.Append(code[codePointer + 1]);
+				codePointer++;
+			}
+			var operand = int.Parse(sb.ToString());
+			return operand;
 		}
 
 		private bool IsDigit(char cc)
