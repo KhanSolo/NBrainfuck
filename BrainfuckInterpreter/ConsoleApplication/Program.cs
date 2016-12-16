@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ConsoleApplication
+﻿namespace ConsoleApplication
 {
 	class Program
 	{
@@ -16,7 +9,7 @@ namespace ConsoleApplication
 
 			data[dataPointer] = 7;
 
-			label_after_opening_bracket:
+label_after_opening_bracket:
 
 			data[dataPointer]--;
 
@@ -24,6 +17,7 @@ namespace ConsoleApplication
 			{
 				goto label_after_opening_bracket;
 			}
+			data[dataPointer]=0;
 		}
 	}
 }

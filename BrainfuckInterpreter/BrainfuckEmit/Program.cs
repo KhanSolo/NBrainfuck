@@ -16,28 +16,28 @@ namespace BrainfuckEmit
 	"+++++++++++++++++++++++++++++++++++++++++++++" 
 	+ " +++++++++++++++++++++++++++.+++++++++++++++++\r\n ++++++++++++.+++++++..+++.-------------------\r\n ---------------------------------------------\r\n ---------------.+++++++++++++++++++++++++++++\r\n ++++++++++++++++++++++++++.++++++++++++++++++\r\n ++++++.+++.------.--------.------------------\r\n ---------------------------------------------\r\n ----.-----------------------.";*/
 
-			var code =
-			">+>+>+>+>++<[>[<+++>-"
-			+ " >>>>>"
-			+ " >+>+>+>+>++<[>[<+++>-"
-			+ "   >>>>>"
-			+ "   >+>+>+>+>++<[>[<+++>-"
-			+ "     >>>>>"
-			+ "     >+>+>+>+>++<[>[<+++>-"
-			+ "       >>>>>"
-			+ "       +++[->+++++<]>[-]<"
-			+ "       <<<<<"
-			+ "     ]<<]>[-]"
-			+ "     <<<<<"
-			+ "   ]<<]>[-]"
-			+ "   <<<<<"
-			+ " ]<<]>[-]"
-			+ " <<<<<"
-			+ "]<<]>.";
+			//var code =
+			//">+>+>+>+>++<[>[<+++>-"
+			//+ " >>>>>"
+			//+ " >+>+>+>+>++<[>[<+++>-"
+			//+ "   >>>>>"
+			//+ "   >+>+>+>+>++<[>[<+++>-"
+			//+ "     >>>>>"
+			//+ "     >+>+>+>+>++<[>[<+++>-"
+			//+ "       >>>>>"
+			//+ "       +++[->+++++<]>[-]<"
+			//+ "       <<<<<"
+			//+ "     ]<<]>[-]"
+			//+ "     <<<<<"
+			//+ "   ]<<]>[-]"
+			//+ "   <<<<<"
+			//+ " ]<<]>[-]"
+			//+ " <<<<<"
+			//+ "]<<]>.";
 
-			//var code = "+++[-]++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++" 
-			//            + " .>+.+++++++..+++.>++.<<+++++++++++++++.>.+++." 
-			//		    + " ------.--------.>+.>.";
+			var code = "+++[-]++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++"
+						+ " .>+.+++++++..+++.>++.<<+++++++++++++++.>.+++."
+						+ " ------.--------.>+.>.";
 
 			var interpreter = new BrainfuckEmitter();
 			interpreter.Run(code);
@@ -57,17 +57,92 @@ namespace BrainfuckEmit
 			
 		}
 
-		private string Optimize(string code)
+		public // <-- temporarily
+		string Optimize(string code)
 		{
 			// todo optimizer
 			
+			var sb = new StringBuilder(code);
+
+			sb = RemoveSpaces(sb);
+
+			for (var i=0; i<sb.Length; ++i)
 			// +++++       --> i5 (increment by 5)
 			// -------     --> d7 (decrement by 7)
 			// >>>		   --> r3 (right shift by 3)
 			// <<<<<<	   --> l6 (left shift by 6)
 			// [+] или [-] --> s0 (set to 0)
-			
-			return code;
+			{
+				bool noOp = true;
+
+				if (sb[i] == '+')
+				{
+					noOp = false;
+					var idx = i; // с какого писать строку
+					int incr = 1;
+					while((i+1<sb.Length)
+						&& (sb[i + 1] == '+'))
+						{
+							incr++;
+							i++;
+						}
+					if (incr > 1)
+					{
+						sb[idx] = 'i';
+						idx++;
+						var sIncr = incr.ToString();
+						foreach (char c in sIncr)
+						{
+							sb[idx] = c;
+							idx++;
+						}
+						while (idx <= i)
+						{
+							sb[idx] = ' ';
+							idx++;
+						}
+					}
+				}
+				if (sb[i] == '-')
+				{
+					noOp = false;
+				}
+				if (sb[i]=='>') noOp = false;
+				if (sb[i]=='<') noOp = false;
+				if (sb[i]=='.') noOp = false;
+				if (sb[i]==',') noOp = false;
+				if (sb[i]==']') noOp = false;
+				if (sb[i]=='[')
+				{
+					noOp = false;					
+					if((i+2)<sb.Length)
+					if(
+						(sb[i+1]=='+' || sb[i+1]=='-')
+						&&
+						(sb[i+2]==']'))
+					{
+						sb[i] = 's';
+						sb[i+1] = '0';
+						sb[i+2] = ' ';
+						i++;
+					}
+				}
+				if(noOp) sb[i]=' ';
+			}			
+			sb = RemoveSpaces(sb);
+			return sb.ToString();
+		}
+
+		private static StringBuilder RemoveSpaces(StringBuilder sb)
+		{
+			var sb1 = new StringBuilder(sb.Length);
+			for (var i = 0; i < sb.Length; ++i)
+			{
+				var ch = sb[i];
+				if (ch != ' ')
+					sb1.Append(ch);
+			}
+			return sb1;
 		}
 
 		public void Run(string code)
@@ -260,8 +335,8 @@ namespace BrainfuckEmit
 								if (code[cp] == ']') --br;
 							}
 							 
-						var label_after_closing_bracket = /*new Label();*/ pmIL.DefineLabel();
-						var label_after_opening_bracket = /*new Label();*/ pmIL.DefineLabel();
+						var label_after_closing_bracket = pmIL.DefineLabel();
+						var label_after_opening_bracket = pmIL.DefineLabel();
 
 						var tuple = new Tuple<Label, Label>(
 							label_after_opening_bracket, 
@@ -303,6 +378,43 @@ namespace BrainfuckEmit
 							pmIL.MarkLabel(label_after_closing_bracket);
 							
 							break;
+					}
+
+					case 's': // set
+					{
+						if (code[codePointer+1]=='0') // operand
+						{
+							codePointer++;
+								pmIL.Emit(OpCodes.Ldloc, memory);
+								pmIL.Emit(OpCodes.Ldloc, dataPointer);
+								pmIL.Emit(OpCodes.Ldc_I4, 0);
+								pmIL.Emit(OpCodes.Stelem_I1);
+								/*
+								  IL_0023:  ldloc.0
+								  IL_0024:  ldloc.1
+								  IL_0025:  ldc.i4.0
+								  IL_0026:  stelem.i1
+								 */
+						}
+							break;
+					}
+					
+					case'i': //increment
+					{
+						// todo get operand
+						int operand = 0;
+							//data[dataPointer]+=operand;
+							pmIL.Emit(OpCodes.Ldloc, memory);
+							pmIL.Emit(OpCodes.Ldloc, dataPointer);
+							pmIL.Emit(OpCodes.Ldelema, typeof(byte));
+							pmIL.Emit(OpCodes.Dup);
+							pmIL.Emit(OpCodes.Ldind_U1);
+							pmIL.Emit(OpCodes.Ldc_I4, operand);
+							pmIL.Emit(OpCodes.Add);
+							pmIL.Emit(OpCodes.Conv_U1);
+							pmIL.Emit(OpCodes.Stind_I1);
+						
+						break;
 					}
 				}
 			}

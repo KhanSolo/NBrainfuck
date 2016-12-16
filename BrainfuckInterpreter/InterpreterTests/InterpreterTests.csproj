@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InternalTests.cs" />
+    <Compile Include="OptimizerTests.cs" />
     <Compile Include="PerformanceTests.cs" />
     <Compile Include="IO\Reader.cs" />
     <Compile Include="Tests.cs" />
@@ -52,6 +53,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BrainfuckEmit\BrainfuckEmit.csproj">
+      <Project>{4274fe34-0839-449d-acf3-6e6413665a1d}</Project>
+      <Name>BrainfuckEmit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BrainfuckInterpreter\BrainfuckInterpreter.csproj">
       <Project>{46de1abd-7998-44f1-b737-d0d78b85729b}</Project>
       <Name>BrainfuckInterpreter</Name>
