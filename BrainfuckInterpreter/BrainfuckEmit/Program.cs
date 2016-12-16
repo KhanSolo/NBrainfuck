@@ -389,20 +389,24 @@ namespace BrainfuckEmit
 								pmIL.Emit(OpCodes.Ldloc, dataPointer);
 								pmIL.Emit(OpCodes.Ldc_I4, 0);
 								pmIL.Emit(OpCodes.Stelem_I1);
-								/*
-								  IL_0023:  ldloc.0
-								  IL_0024:  ldloc.1
-								  IL_0025:  ldc.i4.0
-								  IL_0026:  stelem.i1
-								 */
 						}
 							break;
 					}
 					
-					case'i': //increment
+					case 'i': //increment
 					{
-						// todo get operand
-						int operand = 0;
+						// get operand
+						int operand;
+						if(codePointer+1 >= code.Length ) throw new InvalidOperationException("i");
+						var ccod = code[codePointer + 1];
+						if (!IsDigit(ccod))throw new InvalidOperationException("i : operand");
+						var sb = new StringBuilder();
+						while((codePointer + 1 < code.Length)&&
+								IsDigit(code[codePointer+1])) {
+							sb.Append(code[codePointer+1]);
+							codePointer++;
+							}
+						operand = int.Parse(sb.ToString());
 							//data[dataPointer]+=operand;
 							pmIL.Emit(OpCodes.Ldloc, memory);
 							pmIL.Emit(OpCodes.Ldloc, dataPointer);
@@ -434,6 +438,11 @@ namespace BrainfuckEmit
 
 			// todo transfer control to generated asm
 			//pointType.InvokeMember()
+		}
+
+		private bool IsDigit(char cc)
+		{
+			return cc >= '0' && cc <= '9';
 		}
 	}
 }

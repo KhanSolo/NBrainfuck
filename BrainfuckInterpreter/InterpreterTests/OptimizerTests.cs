@@ -24,7 +24,6 @@ namespace InterpreterTests
 						+ " ------.--------.>+.>.";
 			var emit = new BrainfuckEmitter();
 			var optimized = emit.Optimize(code);
-			//           i3s0i10[>i7>i10>i3>+<<<<-]>i2.>+.i7..i3.>i2.<<i15.>.i3.------.--------.>+.>.
 			Assert.True("i3s0i10[>i7>i10>i3>+<<<<-]>i2.>+.i7..i3.>i2.<<i15.>.i3.------.--------.>+.>." == optimized, $"{optimized}");
 		}
 
