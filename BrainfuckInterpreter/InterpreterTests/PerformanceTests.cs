@@ -31,9 +31,11 @@ namespace InterpreterTests
 			var sw = new Stopwatch();
 			sw.Start();
 			var writer = Run(code);
+			Console.WriteLine(writer.Out);
 			sw.Stop();
 			Console.WriteLine("Elapsed: " + sw.ElapsedMilliseconds + " ms");
 			//Elapsed: 204097 ms
+			//Elapsed: 129801 ms
 		}
 	}
 }
