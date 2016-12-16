@@ -12,9 +12,33 @@ namespace BrainfuckEmit
 	{
 		static void Main(string[] args)
 		{
+			/*
 			var code =
 	"+++++++++++++++++++++++++++++++++++++++++++++" 
-	+ " +++++++++++++++++++++++++++.+++++++++++++++++\r\n ++++++++++++.+++++++..+++.-------------------\r\n ---------------------------------------------\r\n ---------------.+++++++++++++++++++++++++++++\r\n ++++++++++++++++++++++++++.++++++++++++++++++\r\n ++++++.+++.------.--------.------------------\r\n ---------------------------------------------\r\n ----.-----------------------.";
+	+ " +++++++++++++++++++++++++++.+++++++++++++++++\r\n ++++++++++++.+++++++..+++.-------------------\r\n ---------------------------------------------\r\n ---------------.+++++++++++++++++++++++++++++\r\n ++++++++++++++++++++++++++.++++++++++++++++++\r\n ++++++.+++.------.--------.------------------\r\n ---------------------------------------------\r\n ----.-----------------------.";*/
+				//var code =
+				//">+>+>+>+>++<[>[<+++>-" 
+				//+ " >>>>>" 
+				//+ " >+>+>+>+>++<[>[<+++>-" 
+				//+ "   >>>>>" 
+				//+ "   >+>+>+>+>++<[>[<+++>-" 
+				//+ "     >>>>>" 
+				//+ "     >+>+>+>+>++<[>[<+++>-" 
+				//+ "       >>>>>" 
+				//+ "       +++[->+++++<]>[-]<" 
+				//+ "       <<<<<" 
+				//+ "     ]<<]>[-]" 
+				//+ "     <<<<<" 
+				//+ "   ]<<]>[-]" 
+				//+ "   <<<<<" 
+				//+ " ]<<]>[-]" 
+				//+ " <<<<<" 
+				//+ "]<<]>.";
+
+			var code = "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++" 
+			            + " .>+.+++++++..+++.>++.<<+++++++++++++++.>.+++." 
+					    + " ------.--------.>+.>.";
+
 			var interpreter = new BrainfuckEmitter();
 			interpreter.Run(code);
 			Console.ReadKey();
@@ -36,6 +60,13 @@ namespace BrainfuckEmit
 		private string Optimize(string code)
 		{
 			// todo optimizer
+			
+			// +++++       --> i5 (increment by 5)
+			// -------     --> d7 (decrement by 7)
+			// >>>		   --> r3 (right shift by 3)
+			// <<<<<<	   --> l6 (left shift by 6)
+			// [+] или [-] --> s0 (set to 0)
+			
 			return code;
 		}
 
@@ -203,6 +234,7 @@ namespace BrainfuckEmit
 						{
 							//var read = (byte) reader.Read();
 							//data[dataPointer] = read;
+							throw new NotImplementedException("Input is not implemented");
 							break;
 						}
 
@@ -219,21 +251,39 @@ namespace BrainfuckEmit
 
 							// determine codePointer of corr closing bracket
 						var cp = codePointer;
-						while (code[cp] != ']') cp++;
+							
+							int br = 1;
+							while (br > 0)
+							{
+								++cp;
+								if (code[cp] == '[') ++br;
+								if (code[cp] == ']') --br;
+							}
+							 
+						//	while (code[cp] != ']')
+						//{
+						//	cp++;
+						//}
 
-						var label_after_closing_bracket = new Label();
-						var label_after_opening_bracket = new Label();
+						var label_after_closing_bracket = /*new Label();*/ pmIL.DefineLabel();
+						var label_after_opening_bracket = /*new Label();*/ pmIL.DefineLabel();
 
 						var tuple = new Tuple<Label, Label>(
 							label_after_opening_bracket, 
 							label_after_closing_bracket);
 							// 
-
+						labels.Add(cp, tuple);
 							/*
 							if (data[dataPointer] == 0){
 								goto label_after_closing_bracket
 							}
-								*/						
+								*/		
+							pmIL.Emit(OpCodes.Ldloc, memory);
+							pmIL.Emit(OpCodes.Ldloc, dataPointer);
+							pmIL.Emit(OpCodes.Ldelem_U1);
+							//brtrue.s label_after_opening_bracket // branch if value is nonzero
+							pmIL.Emit(OpCodes.Brfalse, label_after_closing_bracket);
+							
 							pmIL.MarkLabel(label_after_opening_bracket);
 							
 							break;
@@ -256,8 +306,25 @@ namespace BrainfuckEmit
 							if (data[dataPointer] != 0){
 								goto label_after_opening_bracket
 							}
-
 							*/
+							
+							pmIL.Emit(OpCodes.Ldloc, memory);
+							pmIL.Emit(OpCodes.Ldloc, dataPointer);
+							pmIL.Emit(OpCodes.Ldelem_U1);
+							//brtrue.s label_after_opening_bracket // branch if value is nonzero
+							pmIL.Emit(OpCodes.Brtrue, label_after_opening_bracket);
+							
+							/*
+							//000023: 			if (data[dataPointer] != 0)
+							  IL_001e:  ldloc.0    // data
+							  IL_001f:  ldloc.1    //dpointer
+							  IL_0020:  ldelem.u1
+							  IL_0021:  brtrue.s   IL_0011
+							//000024: 			{
+							//000025: 				goto label_after_opening_bracket;
+							//000026: 			}
+							*/
+							
 							pmIL.MarkLabel(label_after_closing_bracket);
 							
 							break;
