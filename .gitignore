@@ -1,6 +1,7 @@
 *.pdb
 *.exe
 **/Debug/
+**/Release/
 *.user
 *.suo
 **/packages/

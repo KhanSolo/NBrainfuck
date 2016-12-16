@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -16,28 +15,29 @@ namespace BrainfuckEmit
 			var code =
 	"+++++++++++++++++++++++++++++++++++++++++++++" 
 	+ " +++++++++++++++++++++++++++.+++++++++++++++++\r\n ++++++++++++.+++++++..+++.-------------------\r\n ---------------------------------------------\r\n ---------------.+++++++++++++++++++++++++++++\r\n ++++++++++++++++++++++++++.++++++++++++++++++\r\n ++++++.+++.------.--------.------------------\r\n ---------------------------------------------\r\n ----.-----------------------.";*/
-				//var code =
-				//">+>+>+>+>++<[>[<+++>-" 
-				//+ " >>>>>" 
-				//+ " >+>+>+>+>++<[>[<+++>-" 
-				//+ "   >>>>>" 
-				//+ "   >+>+>+>+>++<[>[<+++>-" 
-				//+ "     >>>>>" 
-				//+ "     >+>+>+>+>++<[>[<+++>-" 
-				//+ "       >>>>>" 
-				//+ "       +++[->+++++<]>[-]<" 
-				//+ "       <<<<<" 
-				//+ "     ]<<]>[-]" 
-				//+ "     <<<<<" 
-				//+ "   ]<<]>[-]" 
-				//+ "   <<<<<" 
-				//+ " ]<<]>[-]" 
-				//+ " <<<<<" 
-				//+ "]<<]>.";
 
-			var code = "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++" 
-			            + " .>+.+++++++..+++.>++.<<+++++++++++++++.>.+++." 
-					    + " ------.--------.>+.>.";
+			var code =
+			">+>+>+>+>++<[>[<+++>-"
+			+ " >>>>>"
+			+ " >+>+>+>+>++<[>[<+++>-"
+			+ "   >>>>>"
+			+ "   >+>+>+>+>++<[>[<+++>-"
+			+ "     >>>>>"
+			+ "     >+>+>+>+>++<[>[<+++>-"
+			+ "       >>>>>"
+			+ "       +++[->+++++<]>[-]<"
+			+ "       <<<<<"
+			+ "     ]<<]>[-]"
+			+ "     <<<<<"
+			+ "   ]<<]>[-]"
+			+ "   <<<<<"
+			+ " ]<<]>[-]"
+			+ " <<<<<"
+			+ "]<<]>.";
+
+			//var code = "+++[-]++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++" 
+			//            + " .>+.+++++++..+++.>++.<<+++++++++++++++.>.+++." 
+			//		    + " ------.--------.>+.>.";
 
 			var interpreter = new BrainfuckEmitter();
 			interpreter.Run(code);
@@ -78,7 +78,7 @@ namespace BrainfuckEmit
 					 "Write",
 					 new Type[] { typeof(char) }); // вывод символа
 
-
+			// todo Read
 
 			Type pointType;
 
@@ -249,10 +249,10 @@ namespace BrainfuckEmit
 							 jump it forward to the command after the matching ] command.							 
 							 */
 
-							// determine codePointer of corr closing bracket
+							// determine codePointer of correspondence closing bracket
 						var cp = codePointer;
 							
-							int br = 1;
+							int br = 1; // current
 							while (br > 0)
 							{
 								++cp;
@@ -260,28 +260,19 @@ namespace BrainfuckEmit
 								if (code[cp] == ']') --br;
 							}
 							 
-						//	while (code[cp] != ']')
-						//{
-						//	cp++;
-						//}
-
 						var label_after_closing_bracket = /*new Label();*/ pmIL.DefineLabel();
 						var label_after_opening_bracket = /*new Label();*/ pmIL.DefineLabel();
 
 						var tuple = new Tuple<Label, Label>(
 							label_after_opening_bracket, 
 							label_after_closing_bracket);
-							// 
+
 						labels.Add(cp, tuple);
-							/*
-							if (data[dataPointer] == 0){
-								goto label_after_closing_bracket
-							}
-								*/		
+	
 							pmIL.Emit(OpCodes.Ldloc, memory);
 							pmIL.Emit(OpCodes.Ldloc, dataPointer);
 							pmIL.Emit(OpCodes.Ldelem_U1);
-							//brtrue.s label_after_opening_bracket // branch if value is nonzero
+							// branch if value is nonzero
 							pmIL.Emit(OpCodes.Brfalse, label_after_closing_bracket);
 							
 							pmIL.MarkLabel(label_after_opening_bracket);
@@ -299,32 +290,16 @@ namespace BrainfuckEmit
 							 */
 
 							 var tuple = labels[codePointer];
+						
 							 var label_after_opening_bracket = tuple.Item1;
 							 var label_after_closing_bracket = tuple.Item2;
-
-							/*
-							if (data[dataPointer] != 0){
-								goto label_after_opening_bracket
-							}
-							*/
-							
+							labels.Remove(codePointer);
 							pmIL.Emit(OpCodes.Ldloc, memory);
 							pmIL.Emit(OpCodes.Ldloc, dataPointer);
 							pmIL.Emit(OpCodes.Ldelem_U1);
-							//brtrue.s label_after_opening_bracket // branch if value is nonzero
+							// branch if value is nonzero
 							pmIL.Emit(OpCodes.Brtrue, label_after_opening_bracket);
-							
-							/*
-							//000023: 			if (data[dataPointer] != 0)
-							  IL_001e:  ldloc.0    // data
-							  IL_001f:  ldloc.1    //dpointer
-							  IL_0020:  ldelem.u1
-							  IL_0021:  brtrue.s   IL_0011
-							//000024: 			{
-							//000025: 				goto label_after_opening_bracket;
-							//000026: 			}
-							*/
-							
+						
 							pmIL.MarkLabel(label_after_closing_bracket);
 							
 							break;
