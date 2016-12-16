@@ -38,7 +38,7 @@ namespace BrainfuckEmit
 
 			//Console.Write("Please enter a name for your new assembly: ");
 			StringBuilder asmFileNameBldr = new StringBuilder();
-			asmFileNameBldr.Append("bf_executable.exe");
+			asmFileNameBldr.Append("bf_executable");
 			asmFileNameBldr.Append(".exe");
 			var asmFileName = asmFileNameBldr.ToString();
 
