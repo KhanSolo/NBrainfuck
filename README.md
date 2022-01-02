@@ -1,3 +1,3 @@
 # NBrainfuck
 
-Simple c# interpreter/compiler
+Simple brainfuck interpreter/compiler written with C#
